@@ -2,9 +2,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 import numpy as np
-import pandas
 from scipy import interpolate
-import csv
 import pandas as pd
 
 #
@@ -20,32 +18,8 @@ import pandas as pd
 
 class MetricData:
     def __init__(self, path: str):
-        with open(path) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            current_row = -1
-            self.data_frame = pandas.read_csv(path)
-            self.name = path
-            self.time_stamp: list[float] = []
-            self.available_mb = []
-            self.cpu_level = []
-            self.gpu_level = []
-            self.ave_fps = []
-            self.cpu_utilisation = []
-            self.gpu_utilisation = []
-            self.app_rss_mb = []
-            print (self.data_frame)
-            for row in csv_reader:
-                current_row += 1
-                if current_row == 0:
-                    continue
-                self.time_stamp.append(float(row[0]))
-                self.available_mb.append(float(row[1]))
-                self.cpu_level.append(float(row[10]))
-                self.gpu_level.append(float(row[11]))
-                self.ave_fps.append(float(row[17]))
-                self.cpu_utilisation.append(float(row[30]))
-                self.gpu_utilisation.append(float(row[39]))
-                self.app_rss_mb.append(float(row[41]))
+        self.data_frame: pd.DataFrame = pd.read_csv(path)
+        self.name = path
 
     def __str__(self):
         head, tail = os.path.split(self.name)
@@ -83,11 +57,11 @@ def plot_metrics(metric_data: list[MetricData], colors: list[str]):
 
     fig, axes = plt.subplots(4)
 
-    available_mb = [x.available_mb for x in metric_data]
-    cpu_uti = [x.cpu_utilisation for x in metric_data]
-    gpu_uti = [x.gpu_utilisation for x in metric_data]
-    fps = [x.ave_fps for x in metric_data]
-    time_stamps = [x.time_stamp for x in metric_data]
+    available_mb = [x.data_frame["available_memory_MB"] for x in metric_data]
+    cpu_uti = [x.data_frame["cpu_utilization_percentage"] for x in metric_data]
+    gpu_uti = [x.data_frame["gpu_utilization_percentage"] for x in metric_data]
+    fps = [x.data_frame["average_frame_rate"] for x in metric_data]
+    time_stamps = [x.data_frame["Time Stamp"] for x in metric_data]
 
     plot(available_mb, time_stamps, axes[0], "AMB", [1000, 4000], False,colors)
 
@@ -100,25 +74,25 @@ def plot_metrics(metric_data: list[MetricData], colors: list[str]):
     mng.window.state('zoomed')
 
 
-def print_averages(results: list[MetricData]):
-    mb = 0.
-    cpu = 0.
-    gpu = 0.
-    fps = 0.
-    for m in results:
-        mb += sum(m.available_mb) / len(m.available_mb)
-        cpu += sum(m.cpu_utilisation) / len(m.cpu_utilisation)
-        gpu += sum(m.gpu_utilisation) / len(m.gpu_utilisation)
-        fps += sum(m.ave_fps) / len(m.ave_fps)
-
-    mb /= len(results)
-    cpu /= len(results)
-    gpu /= len(results)
-    fps /= len(results)
-    print(round(mb, 2))
-    print(round(cpu, 2))
-    print(round(gpu, 2))
-    print(round(fps, 2))
+# def print_averages(results: list[MetricData]):
+#     mb = 0.
+#     cpu = 0.
+#     gpu = 0.
+#     fps = 0.
+#     for m in results:
+#         mb += sum(m.available_mb) / len(m.available_mb)
+#         cpu += sum(m.cpu_utilisation) / len(m.cpu_utilisation)
+#         gpu += sum(m.gpu_utilisation) / len(m.gpu_utilisation)
+#         fps += sum(m.ave_fps) / len(m.ave_fps)
+#
+#     mb /= len(results)
+#     cpu /= len(results)
+#     gpu /= len(results)
+#     fps /= len(results)
+#     print(round(mb, 2))
+#     print(round(cpu, 2))
+#     print(round(gpu, 2))
+#     print(round(fps, 2))
 #
 # vul_multiview_1 = process_csv("OVR_Metrics/autoplay/vulkan_multiview/vmv_1.csv")
 # vul_multiview_2 = process_csv("OVR_Metrics/autoplay/vulkan_multiview/vmv_2.csv")
