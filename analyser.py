@@ -21,7 +21,7 @@ def process_csv(path: str) -> MetricData:
     return MetricData(path)
 
 
-def plot(y_values: [], time_stamps: [], axis, ylabel: str, smooth: bool, colors: list[str]):
+def plot(y_values: [], x_values: [], axis, ylabel: str, smooth: int, colors: list[str]):
     ax_x = axis
     minimum = min(min(x) for x in y_values)
     maximum = max(max(x) for x in y_values)
@@ -31,13 +31,13 @@ def plot(y_values: [], time_stamps: [], axis, ylabel: str, smooth: bool, colors:
     for iteration, y in enumerate(y_values):
         ax = ax_x.twinx()
         ax.set_ylim([minimum * 0.75, maximum * 1.25])
-        x_new = time_stamps[iteration]
+        x_new = x_values[iteration]
         new_y = y
-        if smooth:
-            last_timevalue = int(time_stamps[iteration][len(time_stamps[iteration]) - 1])
-            amount_of_points = 30
+        if smooth != -1:
+            last_timevalue = int(x_values[iteration].iloc[-1])
+            amount_of_points = smooth
             x_new = np.linspace(0, last_timevalue, amount_of_points)
-            bspline = interpolate.make_interp_spline(time_stamps[iteration], new_y)
+            bspline = interpolate.make_interp_spline(x_values[iteration], new_y)
             new_y = bspline(x_new)
 
         color = "black"
@@ -47,18 +47,27 @@ def plot(y_values: [], time_stamps: [], axis, ylabel: str, smooth: bool, colors:
         ax.get_yaxis().set_visible(False)
 
 
-def plot_metrics(metric_data: list[MetricData], selected_data: list[str], colors: list[str], smooth=True):
+def plot_metrics(metric_data: list[MetricData], selected_data_y: list[str], selected_data_x: str, colors: list[str], smooth=-1):
     lines = [(mlines.Line2D([], [], color=colors[iteration], label=str(x))) for iteration, x in enumerate(metric_data)]
 
-    axes_count = len(selected_data)
+    axes_count = len(selected_data_y)
     fig, axes = plt.subplots(axes_count)
 
     if axes_count > 1:
-        for it, s in enumerate(selected_data):
-            plot([x.data_frame[s] for x in metric_data], [x.data_frame["Time Stamp"] for x in metric_data], axes[it], s, smooth, colors)
+        for it, s in enumerate(selected_data_y):
+            plot([x.data_frame[s] for x in metric_data],
+                 [x.data_frame[selected_data_x] for x in metric_data],
+                 axes[it],
+                 s,
+                 smooth,
+                 colors)
     else:
-        plot([x.data_frame[selected_data[0]] for x in metric_data], [x.data_frame["Time Stamp"] for x in metric_data], axes, selected_data[0],
-             smooth, colors)
+        plot([x.data_frame[selected_data_y[0]] for x in metric_data],
+             [x.data_frame[selected_data_x] for x in metric_data],
+             axes,
+             selected_data_y[0],
+             smooth,
+             colors)
 
     plt.legend(handles=lines, loc='center left', bbox_to_anchor=(1, 0.5), ncol=1, fancybox=True, shadow=True)
     fig.subplots_adjust(left=0.05, right=0.9, top=0.95, bottom=0.05)
