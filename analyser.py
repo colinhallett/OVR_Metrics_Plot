@@ -34,7 +34,9 @@ def plot(y_values: [], time_stamps: [], axis, ylabel: str, smooth: bool, colors:
         x_new = time_stamps[iteration]
         new_y = y
         if smooth:
-            x_new = np.linspace(0, int(time_stamps[iteration][len(time_stamps[iteration]) - 1]), 40)
+            last_timevalue = int(time_stamps[iteration][len(time_stamps[iteration]) - 1])
+            amount_of_points = 30
+            x_new = np.linspace(0, last_timevalue, amount_of_points)
             bspline = interpolate.make_interp_spline(time_stamps[iteration], new_y)
             new_y = bspline(x_new)
 
@@ -45,7 +47,7 @@ def plot(y_values: [], time_stamps: [], axis, ylabel: str, smooth: bool, colors:
         ax.get_yaxis().set_visible(False)
 
 
-def plot_metrics(metric_data: list[MetricData], selected_data: list[str], colors: list[str], smooth = False):
+def plot_metrics(metric_data: list[MetricData], selected_data: list[str], colors: list[str], smooth=True):
     lines = [(mlines.Line2D([], [], color=colors[iteration], label=str(x))) for iteration, x in enumerate(metric_data)]
 
     axes_count = len(selected_data)
